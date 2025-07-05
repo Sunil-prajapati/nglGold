@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, TouchableOpacity, Dimensions } from 'react-native';
+import { View, TouchableOpacity,Dimensions } from 'react-native';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import Box from '../../components/Box';
 import SharedCalendar from '../../components/SharedCalendar';
@@ -11,18 +11,22 @@ import Typography from '../../components/Typography';
 import { MESSAGES, MOBILE_NUMBER, TABLE_COLUMNS_COLOR, WHATS_APP_MESSAGES } from '../../constants/enum';
 import useApi from '../../hooks/useApi';
 import { API_ENDPOINTS } from '../../constants/ApiEndPoints';
-import { Marquee } from '@animatereactnative/marquee';
 import { isSameAsCurrentDate } from '../../helper/helper';
 import { useDateContext } from '../../context/DateContext';
 import { openWhatsApp } from '../../utils/whatsapp';
+import MarqueeBox from '../../components/ui/MarqueeBox';
+import { useHeaderHeight } from '@react-navigation/elements';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 const HomeScreen = () => {
   const { theme } = useTheme();
   const { data, loading, error, sendData } = useApi(API_ENDPOINTS.GET_SINGLE_DATA);
   const colors = THEME_COLORS[theme];
   const { selectedDate } = useDateContext();
-  const screenHeight = Dimensions.get('window').height;
-  const tableHeight = screenHeight * 0.67;
+  const headerHeight = useHeaderHeight();
+  const tabBarHeight = useBottomTabBarHeight();
+  const availableHeight = Dimensions.get('window').height - headerHeight - tabBarHeight;
+
 
   const fetchData = () => {
     let date;
@@ -80,28 +84,8 @@ const HomeScreen = () => {
   ];
   return (
     <ScreenWrapper>
-      <View className="flex-1 items-center justify-start p-2">
-          <Box
-            bgColor={colors.primary}
-            padding={0}
-            style={{ paddingVertical: 4, paddingHorizontal: 0 }}
-          >
-            <Marquee spacing={20} speed={1}>
-              <Typography variant="subtitle2" color={colors.red}>{MESSAGES.WHATS_APP_TEXT}</Typography>
-            </Marquee>
-          </Box>
-        <TouchableOpacity
-          onPress={() => openWhatsApp(MOBILE_NUMBER.FIRST, WHATS_APP_MESSAGES.WANT_TO_PLAY)}
-          activeOpacity={0.7}
-          style={{ width: '100%' }}
-        >
-          <Box
-            bgColor={colors.primary}
-            style={{ paddingVertical: 4, paddingHorizontal: 7, marginTop: 10 }}
-          >
-              <Typography variant="caption" color={colors.text}>{MESSAGES.DISCOUNT_TEXT}</Typography>
-          </Box>
-        </TouchableOpacity>
+      <View className="items-center justify-start p-2">
+        <MarqueeBox/>
         <TouchableOpacity
           onPress={() => openWhatsApp(MOBILE_NUMBER.FIRST, WHATS_APP_MESSAGES.WANT_TO_KNOW)}
           activeOpacity={0.7}
@@ -118,7 +102,6 @@ const HomeScreen = () => {
         {error ? (
           <ErrorDisplay 
             error={error}
-            height={tableHeight}
             onRetry={fetchData}
           />
         ) : (
@@ -126,8 +109,8 @@ const HomeScreen = () => {
             columns={tableColumns}
             data={data}
             className="w-full"
-            height={tableHeight}
             loading={loading}
+            height={availableHeight}
           />
         )}
       </View>
